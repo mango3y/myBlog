@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.mango3y.myblog.dao.UserDAO">
+    <!--sql标签内可以写一个常重复的代码，要用时则用include标签-->
+    <sql id = "select">
+        select * from tab_user
+    </sql>
+
+    <resultMap id="userResultMap" type="User">
+        <!-- 其它java属性名和数据库表列名一样的可以省略不写 -->
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="queryUserById" parameterType="int" resultMap="userResultMap">
+        <include refid="select"/>
+        where id = #{id}
+    </select>
+
+</mapper>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+">
+
+    <!-- 配置文件参数化(参数占位符) -->
+    <context:property-placeholder location="jdbc.properties"/>
+
+    <!-- 连接池Druid与连接处PooledDataSource集成(二选一) -->
+    <!-- 肯定选Druid -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <!-- 基本配置 -->
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="url" value="${jdbc.jdbcUrl}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+
+        <!-- Druid连接池可选参数 -->
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="${jdbc.initialSize}"/>
+        <property name="minIdle" value="${jdbc.minIdle}"/>
+        <property name="maxActive" value="${jdbc.maxActive}"/>
+
+        <!--配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="${jdbc.maxWait}"/>
+
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="${jdbc.timeBetweenEvictionRunsMillis}"/>
+
+        <!--配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="${jdbc.minEvictableIdleTimeMillis}"/>
+    </bean>
+
+    <!--工厂bean: 生成SqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 注入连接池 -->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 注入dao-mapper文件信息，如果映射文件和dao接口同包且同名，则此配置可以省略 -->
+        <property name="mapperLocations">
+            <list>
+                <value>classpath:cn/mango3y/myblog/dao/*.xml</value>
+            </list>
+        </property>
+        <!-- 为dao-mapper文件中的实体 定义缺省包(默认)路径
+            如：<select id="queryAll" resultType="User">中 User类可以不用写全类名
+        -->
+        <property name="typeAliasesPackage" value="cn.mango3y.myblog.entity"/>
+    </bean>
+
+    <!-- mapperScannerConfigurer -->
+    <!-- 管理DAO实现类的创建，并创建DAO对象，存入工厂管理 -->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- dao接口所在的包，如果有多个包，可以用逗号或分号分隔 -->
+        <property name="basePackage" value="cn.mango3y.myblog.dao"/>
+        <!-- 如果工厂中只有一个Sq1SessionFactory的bean，此配置可省略 -->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+    <!-- 告知spring注解位置 -->
+    <context:component-scan base-package="cn.mango3y.myblog"/>
+
+</beans>
